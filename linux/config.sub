@@ -362,7 +362,7 @@ case $basic_machine in
 	  ;;
 	# Object if more than one company name word.
 	*-*-*)
-		echo Invalid configuration \`"$1"\': machine \`"$basic_machine"\' not recognized 1>&2
+		echo Invalid configuration linux1 \`"$1"\': machine \`"$basic_machine"\' not recognized 1>&2
 		exit 1
 		;;
 	# Recognize the basic CPU types with company name.
@@ -1315,7 +1315,7 @@ case $basic_machine in
 		# Make sure to match an already-canonicalized machine name.
 		;;
 	*)
-		echo Invalid configuration \`"$1"\': machine \`"$basic_machine"\' not recognized 1>&2
+		echo Invalid configuration linux2 \`"$1"\': machine \`"$basic_machine"\' not recognized 1>&2
 		exit 1
 		;;
 esac
@@ -1527,7 +1527,7 @@ case $os in
 	*)
 		# Get rid of the `-' at the beginning of $os.
 		os=`echo $os | sed 's/[^-]*-//'`
-		echo Invalid configuration \`"$1"\': system \`"$os"\' not recognized 1>&2
+		echo Invalid configuration linux3 \`"$1"\': system \`"$os"\' not recognized 1>&2
 		exit 1
 		;;
 esac
