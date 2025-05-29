@@ -12,8 +12,8 @@ get_library_source() {
     SOURCE_TYPE="TAG"
     ;;
   chromaprint)
-    SOURCE_REPO_URL="https://github.com/arthenica/chromaprint"
-    SOURCE_ID="v1.5.1"
+    SOURCE_REPO_URL="https://github.com/safastak/chromaprint"
+    SOURCE_ID="master" # was https://github.com/arthenica/chromaprint, v1.5.1
     SOURCE_TYPE="TAG"
     ;;
   cpu-features)
@@ -63,7 +63,7 @@ get_library_source() {
     ;;
   gnutls)
     SOURCE_REPO_URL="https://github.com/arthenica/gnutls"
-    SOURCE_ID="3.7.9"
+    SOURCE_ID="3.8.9"
     SOURCE_TYPE="TAG"
     ;;
   harfbuzz)
@@ -82,8 +82,8 @@ get_library_source() {
     SOURCE_TYPE="TAG"
     ;;
   lame)
-    SOURCE_REPO_URL="https://github.com/arthenica/lame"
-    SOURCE_ID="RELEASE__3_100"
+    SOURCE_REPO_URL="https://github.com/safastak/lame"
+    SOURCE_ID="master" # was https://github.com/arthenica/lame, RELEASE__3_100
     SOURCE_TYPE="TAG"
     ;;
   leptonica)
@@ -117,8 +117,8 @@ get_library_source() {
     SOURCE_TYPE="TAG"
     ;;
   libpng)
-    SOURCE_REPO_URL="https://github.com/arthenica/libpng"
-    SOURCE_ID="v1.6.40"
+    SOURCE_REPO_URL="https://github.com/safastak/libpng"
+    SOURCE_ID="libpng16" # was https://github.com/arthenica/libpng, v1.6.40
     SOURCE_TYPE="TAG"
     ;;
   libsamplerate)
@@ -208,12 +208,12 @@ get_library_source() {
     ;;
   snappy)
     SOURCE_REPO_URL="https://github.com/arthenica/snappy"
-    SOURCE_ID="1.1.9"
+    SOURCE_ID="1.2.2"
     SOURCE_TYPE="TAG"
     ;;
   soxr)
-    SOURCE_REPO_URL="https://github.com/arthenica/soxr"
-    SOURCE_ID="0.1.3"
+    SOURCE_REPO_URL="https://github.com/safastak/soxr"
+    SOURCE_ID="master" # was https://github.com/arthenica/soxr, 0.1.3
     SOURCE_TYPE="TAG"
     ;;
   speex)
@@ -222,8 +222,8 @@ get_library_source() {
     SOURCE_TYPE="TAG"
     ;;
   srt)
-    SOURCE_REPO_URL="https://github.com/arthenica/srt"
-    SOURCE_ID="v1.5.2"
+    SOURCE_REPO_URL="https://github.com/safastak/srt"
+    SOURCE_ID="master" # was https://github.com/arthenica/srt, v1.5.2
     SOURCE_TYPE="TAG"
     ;;
   tesseract)
