@@ -1,0 +1,135 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg_mux_init.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg_mux_init.c	2026-04-06 18:08:33
+@@ -1,5 +1,6 @@
+ /*
+  * Muxer/output file setup.
++ * Copyright (c) 2023 ARTHENICA LTD
+  *
+  * This file is part of FFmpeg.
+  *
+@@ -18,12 +19,28 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++/*
++ * This file is the modified version of ffmpeg_mux_init.c file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop ffmpeg-kit library.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ * - fftools header names updated
++ * - EncStatsFile declaration migrated to ffmpeg_mux.h
++ * - extern ms_from_ost added
++ * - "class" member field renamed as clazz
++ */
++
+ #include <string.h>
+ 
+-#include "cmdutils.h"
+-#include "ffmpeg.h"
+-#include "ffmpeg_mux.h"
+-#include "fopen_utf8.h"
++#include "fftools_cmdutils.h"
++#include "fftools_ffmpeg.h"
++#include "fftools_ffmpeg_mux.h"
++#include "fftools_fopen_utf8.h"
+ 
+ #include "libavformat/avformat.h"
+ #include "libavformat/avio.h"
+@@ -88,6 +105,8 @@
+ static const char *const opt_name_frame_pix_fmts[]            = {"pix_fmt", NULL};
+ static const char *const opt_name_sample_fmts[]               = {"sample_fmt", NULL};
+ 
++extern MuxStream *ms_from_ost(OutputStream *ost);
++
+ static int check_opt_bitexact(void *ctx, const AVDictionary *opts,
+                               const char *opt_name, int flag)
+ {
+@@ -176,13 +195,8 @@
+     return ret;
+ }
+ 
+-typedef struct EncStatsFile {
+-    char        *path;
+-    AVIOContext *io;
+-} EncStatsFile;
+-
+-static EncStatsFile   *enc_stats_files;
+-static          int nb_enc_stats_files;
++__thread EncStatsFile   *enc_stats_files;
++__thread int nb_enc_stats_files;
+ 
+ static int enc_stats_get_file(AVIOContext **io, const char *path)
+ {
+@@ -410,7 +424,7 @@
+     ms->ost.file_index = mux->of.index;
+     ms->ost.index      = mux->of.nb_streams - 1;
+ 
+-    ms->ost.class = &output_stream_class;
++    ms->ost.clazz = &output_stream_class;
+ 
+     snprintf(ms->log_name, sizeof(ms->log_name), "%cost#%d:%d",
+              type_str ? *type_str : '?', mux->of.index, ms->ost.index);
+@@ -606,11 +620,8 @@
+     MATCH_PER_STREAM_OPT(codec_tags, str, codec_tag, oc, st);
+     if (codec_tag) {
+         uint32_t tag = strtol(codec_tag, &next, 0);
+-        if (*next) {
+-            uint8_t buf[4] = { 0 };
+-            memcpy(buf, codec_tag, FFMIN(sizeof(buf), strlen(codec_tag)));
+-            tag = AV_RL32(buf);
+-        }
++        if (*next)
++            tag = AV_RL32(codec_tag);
+         ost->st->codecpar->codec_tag = tag;
+         if (ost->enc_ctx)
+             ost->enc_ctx->codec_tag = tag;
+@@ -1262,9 +1273,9 @@
+             if (subtitle_codec_name ||
+                 input_props & output_props ||
+                 // Map dvb teletext which has neither property to any output subtitle encoder
+-                input_descriptor && output_descriptor &&
++                (input_descriptor && output_descriptor &&
+                 (!input_descriptor->props ||
+-                 !output_descriptor->props)) {
++                 !output_descriptor->props))) {
+                 new_subtitle_stream(mux, o, ist);
+                 break;
+             }
+@@ -1822,11 +1833,11 @@
+     parse_meta_type(mux, inspec,  &type_in,  &idx_in,  &istream_spec);
+     parse_meta_type(mux, outspec, &type_out, &idx_out, &ostream_spec);
+ 
+-    if (type_in == 'g' || type_out == 'g' || (!*outspec && !ic))
++    if (type_in == 'g' || type_out == 'g')
+         *metadata_global_manual = 1;
+-    if (type_in == 's' || type_out == 's' || (!*outspec && !ic))
++    if (type_in == 's' || type_out == 's')
+         *metadata_streams_manual = 1;
+-    if (type_in == 'c' || type_out == 'c' || (!*outspec && !ic))
++    if (type_in == 'c' || type_out == 'c')
+         *metadata_chapters_manual = 1;
+ 
+     /* ic is NULL when just disabling automatic mappings */
+@@ -2066,7 +2077,7 @@
+         if (next)
+             *next++ = 0;
+ 
+-        if (strstr(p, "chapters") == p) {
++        if (!memcmp(p, "chapters", 8)) {
+             AVChapter * const *ch = mux->fc->chapters;
+             unsigned int    nb_ch = mux->fc->nb_chapters;
+             int j;
+@@ -2199,7 +2210,7 @@
+ {
+     Muxer *mux = allocate_array_elem(&output_files, sizeof(*mux), &nb_output_files);
+ 
+-    mux->of.class = &output_file_class;
++    mux->of.clazz = &output_file_class;
+     mux->of.index = nb_output_files - 1;
+ 
+     snprintf(mux->log_name, sizeof(mux->log_name), "out#%d", mux->of.index);

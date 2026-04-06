@@ -1,0 +1,115 @@
+--- /tmp/ffmpeg-6.0-src/fftools/cmdutils.h	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/cmdutils.h	2026-04-06 18:08:33
+@@ -1,6 +1,8 @@
+ /*
+  * Various utilities for command line tools
+  * copyright (c) 2003 Fabrice Bellard
++ * copyright (c) 2018-2022 Taner Sener
++ * copyright (c) 2023 ARTHENICA LTD
+  *
+  * This file is part of FFmpeg.
+  *
+@@ -17,6 +19,46 @@
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with FFmpeg; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/*
++ * This file is the modified version of cmdutils.h file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop mobile-ffmpeg and later ffmpeg-kit libraries.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ *
++ * mobile-ffmpeg / ffmpeg-kit changes by Taner Sener
++ *
++ * 09.2022
++ * --------------------------------------------------------
++ * - config.h include added back
++ *
++ * 01.2020
++ * --------------------------------------------------------
++ * - ffprobe support added (variables used by ffprobe marked with "__thread" specifier)
++ * - AV_LOG_STDERR log level added
++ *
++ * 12.2019
++ * --------------------------------------------------------
++ * - concurrent execution support ("__thread" specifier added to variables used by multiple threads)
++ *
++ * 03.2019
++ * --------------------------------------------------------
++ * - config.h include removed
++ *
++ * 08.2018
++ * --------------------------------------------------------
++ * - fftools_ prefix added to file name and include guards
++ *
++ * 07.2018
++ * --------------------------------------------------------
++ * - include guards renamed
++ * - unused headers removed
+  */
+ 
+ #ifndef FFTOOLS_CMDUTILS_H
+@@ -35,19 +77,25 @@
+ #endif
+ 
+ /**
++ * Defines logs printed to stderr by ffmpeg. They are not filtered and always redirected.
++ */
++#define AV_LOG_STDERR    -16
++
++/**
+  * program name, defined by the program for show_version().
+  */
+-extern const char program_name[];
++extern __thread char *program_name;
+ 
+ /**
+  * program birth year, defined by the program for show_banner()
+  */
+-extern const int program_birth_year;
++extern __thread int program_birth_year;
+ 
+-extern AVDictionary *sws_dict;
+-extern AVDictionary *swr_opts;
+-extern AVDictionary *format_opts, *codec_opts;
+-extern int hide_banner;
++extern __thread AVDictionary *sws_dict;
++extern __thread AVDictionary *swr_opts;
++extern __thread AVDictionary *format_opts, *codec_opts;
++extern __thread int hide_banner;
++extern __thread int find_stream_info;
+ 
+ /**
+  * Register a program-specific cleanup routine.
+@@ -193,13 +241,14 @@
+  * Show help for all options with given flags in class and all its
+  * children.
+  */
+-void show_help_children(const AVClass *class, int flags);
++void show_help_children(const AVClass *clazz, int flags);
+ 
+ /**
+  * Per-fftool specific help handler. Implemented in each
+  * fftool, called by show_help().
+  */
+-void show_help_default(const char *opt, const char *arg);
++void show_help_default_ffmpeg(const char *opt, const char *arg);
++void show_help_default_ffprobe(const char *opt, const char *arg);
+ 
+ /**
+  * Parse the command line arguments.
+@@ -288,6 +337,7 @@
+  * Parse an options group and write results into optctx.
+  *
+  * @param optctx an app-specific options context. NULL for global options group
++ * @param g option group
+  */
+ int parse_optgroup(void *optctx, OptionGroup *g);
+ 

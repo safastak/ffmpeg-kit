@@ -1,0 +1,52 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg_hw.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg_hw.c	2026-04-06 18:08:33
+@@ -1,4 +1,7 @@
+ /*
++ * Copyright (c) 2018-2019 Taner Sener
++ * Copyright (c) 2023 ARTHENICA LTD
++ *
+  * This file is part of FFmpeg.
+  *
+  * FFmpeg is free software; you can redistribute it and/or
+@@ -16,16 +19,38 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++/*
++ * This file is the modified version of ffmpeg_hw.c file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop mobile-ffmpeg and later ffmpeg-kit libraries.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ *
++ * mobile-ffmpeg / ffmpeg-kit changes by Taner Sener
++ *
++ * 12.2019
++ * --------------------------------------------------------
++ * - concurrent execution support ("__thread" specifier added to variables used by multiple threads)
++ *
++ * 08.2018
++ * --------------------------------------------------------
++ * - fftools_ prefix added to file name and parent header
++ */
++
+ #include <string.h>
+ 
+ #include "libavutil/avstring.h"
+ #include "libavutil/pixdesc.h"
+ #include "libavfilter/buffersink.h"
+ 
+-#include "ffmpeg.h"
++#include "fftools_ffmpeg.h"
+ 
+-static int nb_hw_devices;
+-static HWDevice **hw_devices;
++__thread int nb_hw_devices;
++__thread HWDevice **hw_devices;
+ 
+ static HWDevice *hw_device_get_by_type(enum AVHWDeviceType type)
+ {

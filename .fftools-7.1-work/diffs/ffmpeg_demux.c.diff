@@ -1,0 +1,60 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg_demux.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg_demux.c	2026-04-06 18:08:33
+@@ -1,4 +1,6 @@
+ /*
++ * Copyright (c) 2023 ARTHENICA LTD
++ *
+  * This file is part of FFmpeg.
+  *
+  * FFmpeg is free software; you can redistribute it and/or
+@@ -16,10 +18,25 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++/*
++ * This file is the modified version of ffmpeg_demux.c file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop ffmpeg-kit library.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ * - fftools_ prefix added to the file name
++ * - fftools_ffmpeg_mux.h include added
++ */
++
+ #include <float.h>
+ #include <stdint.h>
+ 
+-#include "ffmpeg.h"
++#include "fftools_ffmpeg.h"
++#include "fftools_ffmpeg_mux.h"
+ 
+ #include "libavutil/avassert.h"
+ #include "libavutil/avstring.h"
+@@ -522,7 +539,7 @@
+                     !av_codec_is_decoder(c))
+                     continue;
+ 
+-                for (int j = 0; config = avcodec_get_hw_config(c, j); j++) {
++                for (int j = 0; (config = avcodec_get_hw_config(c, j)); j++) {
+                     if (config->device_type == hwaccel_device_type) {
+                         av_log(NULL, AV_LOG_VERBOSE, "Selecting decoder '%s' because of requested hwaccel method %s\n",
+                                c->name, av_hwdevice_get_type_name(hwaccel_device_type));
+@@ -628,12 +645,8 @@
+         MATCH_PER_STREAM_OPT(codec_tags, str, codec_tag, ic, st);
+         if (codec_tag) {
+             uint32_t tag = strtol(codec_tag, &next, 0);
+-            if (*next) {
+-                uint8_t buf[4] = { 0 };
+-                memcpy(buf, codec_tag, FFMIN(sizeof(buf), strlen(codec_tag)));
+-                tag = AV_RL32(buf);
+-            }
+-
++            if (*next)
++                tag = AV_RL32(codec_tag);
+             st->codecpar->codec_tag = tag;
+         }
+ 

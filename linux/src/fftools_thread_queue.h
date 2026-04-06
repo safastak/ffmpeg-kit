@@ -24,9 +24,9 @@
  *
  * ffmpeg-kit changes by ARTHENICA LTD
  *
- * 07.2023
+ * 01.2026
  * --------------------------------------------------------
- * - FFmpeg 6.0 changes migrated
+ * - FFmpeg 7.1 changes migrated
  */
 
 #ifndef FFTOOLS_THREAD_QUEUE_H

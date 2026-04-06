@@ -1,0 +1,254 @@
+--- /tmp/ffmpeg-6.0-src/fftools/cmdutils.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/cmdutils.c	2026-04-06 18:08:33
+@@ -1,6 +1,8 @@
+ /*
+  * Various utilities for command line tools
+  * Copyright (c) 2000-2003 Fabrice Bellard
++ * Copyright (c) 2018-2022 Taner Sener
++ * Copyright (c) 2023 ARTHENICA LTD
+  *
+  * This file is part of FFmpeg.
+  *
+@@ -19,6 +21,52 @@
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+  */
+ 
++/*
++ * This file is the modified version of cmdutils.c file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop mobile-ffmpeg and later ffmpeg-kit libraries.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ *
++ * mobile-ffmpeg / ffmpeg-kit changes by Taner Sener
++ *
++ * 09.2022
++ * --------------------------------------------------------
++ * - Dropped the prototypes of init_report, ffmpegkit_log_callback_function and report_callback functions
++ * - volatile dropped from thread local variables
++ *
++ * 01.2020
++ * --------------------------------------------------------
++ * - ffprobe support added (variables used by ffprobe marked with "__thread" specifier, logs with AV_LOG_INFO level
++ *   migrated to use AV_LOG_STDERR)
++ * - (optindex < argc) validation in parse_options() method updated with (optindex >= argc) check
++ *
++ * 12.2019
++ * --------------------------------------------------------
++ * - concurrent execution support ("__thread" specifier added to variables used by multiple threads)
++ * - log_callback_report method re-added to fix -report option issues
++ *
++ * 08.2018
++ * --------------------------------------------------------
++ * - fftools_ prefix added to the file name and parent header
++ *
++ * 07.2018
++ * --------------------------------------------------------
++ * - unused headers removed
++ * - parentheses placed around assignments in conditions to prevent -Wparentheses warning
++ * - exit_program updated with longjmp, disabling exit
++ * - longjmp_value added to store exit code
++ * - (optindex < argc) validation added before accessing argv[optindex] inside split_commandline()
++ *   and parse_options()
++ * - all av_log_set_callback invocations updated to set ffmpegkit_log_callback_function from ffmpegkit.c
++ * - unused log_callback_help method removed
++ * - (idx + 1 < argc) validation added in parse_loglevel()
++ */
++
+ #include <string.h>
+ #include <stdint.h>
+ #include <stdlib.h>
+@@ -30,10 +78,8 @@
+    references to libraries that are not being built. */
+ 
+ #include "config.h"
+-#include "compat/va_copy.h"
+ #include "libavformat/avformat.h"
+ #include "libswscale/swscale.h"
+-#include "libswscale/version.h"
+ #include "libswresample/swresample.h"
+ #include "libavutil/avassert.h"
+ #include "libavutil/avstring.h"
+@@ -47,20 +93,25 @@
+ #include "libavutil/eval.h"
+ #include "libavutil/dict.h"
+ #include "libavutil/opt.h"
+-#include "cmdutils.h"
+-#include "fopen_utf8.h"
+-#include "opt_common.h"
++#include "fftools_cmdutils.h"
++#include "fftools_fopen_utf8.h"
++#include "fftools_opt_common.h"
++#include "ffmpegkit_exception.h"
+ #ifdef _WIN32
+ #include <windows.h>
+ #include "compat/w32dlfcn.h"
+ #endif
+ 
+-AVDictionary *sws_dict;
+-AVDictionary *swr_opts;
+-AVDictionary *format_opts, *codec_opts;
++__thread char *program_name;
++__thread int program_birth_year;
+ 
+-int hide_banner = 0;
++__thread AVDictionary *sws_dict;
++__thread AVDictionary *swr_opts;
++__thread AVDictionary *format_opts, *codec_opts;
+ 
++__thread int hide_banner = 0;
++__thread int longjmp_value = 0;
++
+ void uninit_opts(void)
+ {
+     av_dict_free(&swr_opts);
+@@ -69,11 +120,6 @@
+     av_dict_free(&codec_opts);
+ }
+ 
+-void log_callback_help(void *ptr, int level, const char *fmt, va_list vl)
+-{
+-    vfprintf(stdout, fmt, vl);
+-}
+-
+ void init_dynload(void)
+ {
+ #if HAVE_SETDLLDIRECTORY && defined(_WIN32)
+@@ -83,7 +129,7 @@
+ #endif
+ }
+ 
+-static void (*program_exit)(int ret);
++static __thread void (*program_exit)(int ret);
+ 
+ void register_exit(void (*cb)(int ret))
+ {
+@@ -101,7 +147,11 @@
+     if (program_exit)
+         program_exit(ret);
+ 
+-    exit(ret);
++    // FFmpegKit
++    // exit disabled and replaced with longjmp, exit value stored in longjmp_value
++    // exit(ret);
++    longjmp_value = ret;
++    longjmp(ex_buf__, ret);
+ }
+ 
+ double parse_number_or_die(const char *context, const char *numstr, int type,
+@@ -153,7 +203,7 @@
+             continue;
+ 
+         if (first) {
+-            printf("%s\n", msg);
++            av_log(NULL, AV_LOG_STDERR, "%s\n", msg);
+             first = 0;
+         }
+         av_strlcpy(buf, po->name, sizeof(buf));
+@@ -161,9 +211,9 @@
+             av_strlcat(buf, " ", sizeof(buf));
+             av_strlcat(buf, po->argname, sizeof(buf));
+         }
+-        printf("-%-17s  %s\n", buf, po->help);
++        av_log(NULL, AV_LOG_STDERR, "-%-17s  %s\n", buf, po->help);
+     }
+-    printf("\n");
++    av_log(NULL, AV_LOG_STDERR, "\n");
+ }
+ 
+ void show_help_children(const AVClass *class, int flags)
+@@ -172,10 +222,10 @@
+     const AVClass *child;
+     if (class->option) {
+         av_opt_show2(&class, NULL, flags, 0);
+-        printf("\n");
++        av_log(NULL, AV_LOG_STDERR, "\n");
+     }
+ 
+-    while (child = av_opt_child_class_iterate(class, &iter))
++    while ((child = av_opt_child_class_iterate(class, &iter)))
+         show_help_children(child, flags);
+ }
+ 
+@@ -287,7 +337,7 @@
+     } else if (po->flags & OPT_BOOL || po->flags & OPT_INT) {
+         *(int *)dst = parse_number_or_die(opt, arg, OPT_INT64, INT_MIN, INT_MAX);
+     } else if (po->flags & OPT_INT64) {
+-        *(int64_t *)dst = parse_number_or_die(opt, arg, OPT_INT64, INT64_MIN, INT64_MAX);
++        *(int64_t *)dst = parse_number_or_die(opt, arg, OPT_INT64, INT64_MIN, (double)INT64_MAX);
+     } else if (po->flags & OPT_TIME) {
+         *(int64_t *)dst = parse_time_or_die(opt, arg, 1);
+     } else if (po->flags & OPT_FLOAT) {
+@@ -368,9 +418,13 @@
+                 continue;
+             }
+             opt++;
+-
+-            if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0)
+-                exit_program(1);
++            if (optindex >= argc) {
++                if ((ret = parse_option(optctx, opt, NULL, options)) < 0)
++                    exit_program(1);
++            } else {
++                if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0)
++                    exit_program(1);
++            }
+             optindex += ret;
+         } else {
+             if (parse_arg_function)
+@@ -480,7 +534,7 @@
+ 
+     if (!idx)
+         idx = locate_option(argc, argv, options, "v");
+-    if (idx && argv[idx + 1])
++    if (idx && (idx + 1 < argc) && argv[idx + 1])
+         opt_loglevel(NULL, "loglevel", argv[idx + 1]);
+     idx = locate_option(argc, argv, options, "report");
+     env = getenv_utf8("FFREPORT");
+@@ -724,8 +778,9 @@
+ 
+ #define GET_ARG(arg)                                                           \
+ do {                                                                           \
+-    arg = argv[optindex++];                                                    \
+-    if (!arg) {                                                                \
++    if (optindex < argc) {                                                     \
++        arg = argv[optindex++];                                                \
++    } else {                                                                   \
+         av_log(NULL, AV_LOG_ERROR, "Missing argument for option '%s'.\n", opt);\
+         return AVERROR(EINVAL);                                                \
+     }                                                                          \
+@@ -745,7 +800,11 @@
+         if (po->name) {
+             if (po->flags & OPT_EXIT) {
+                 /* optional argument, e.g. -h */
+-                arg = argv[optindex++];
++                if (optindex < argc) {
++                    arg = argv[optindex++];
++                } else {
++                    arg = NULL;
++                }
+             } else if (po->flags & HAS_ARG) {
+                 GET_ARG(arg);
+             } else {
+@@ -759,7 +818,7 @@
+         }
+ 
+         /* AVOptions */
+-        if (argv[optindex]) {
++        if ((optindex < argc) && argv[optindex]) {
+             ret = opt_default(NULL, opt, argv[optindex]);
+             if (ret >= 0) {
+                 av_log(NULL, AV_LOG_DEBUG, " matched as AVOption '%s' with "
+@@ -921,7 +980,7 @@
+         break;
+     }
+ 
+-    while (t = av_dict_iterate(opts, t)) {
++    while ((t = av_dict_iterate(opts, t))) {
+         const AVClass *priv_class;
+         char *p = strchr(t->key, ':');
+ 

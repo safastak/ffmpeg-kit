@@ -1,0 +1,89 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg_mux.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg_mux.c	2026-04-06 18:08:33
+@@ -1,5 +1,7 @@
+ /*
+  * This file is part of FFmpeg.
++ * Copyright (c) 2022 Taner Sener
++ * Copyright (c) 2023 ARTHENICA LTD
+  *
+  * FFmpeg is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -14,17 +16,40 @@
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with FFmpeg; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/*
++ * This file is the modified version of ffmpeg_mux.c file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop the ffmpeg-kit library.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ * - fftools header names updated
++ * - want_sdp marked as thread-local
++ * - ms_from_ost migrated from ffmpeg_mux.c and marked as non-static
++ *
++ * ffmpeg-kit changes by Taner Sener
++ *
++ * 09.2022
++ * --------------------------------------------------------
++ * - fftools_ prefix added to fftools headers
++ * - using main_ffmpeg_return_code instead of main_return_code
++ * - printf replaced with av_log statements
+  */
+ 
+ #include <stdatomic.h>
+ #include <stdio.h>
+ #include <string.h>
+ 
+-#include "ffmpeg.h"
+-#include "ffmpeg_mux.h"
+-#include "objpool.h"
+-#include "sync_queue.h"
+-#include "thread_queue.h"
++#include "fftools_ffmpeg.h"
++#include "fftools_ffmpeg_mux.h"
++#include "fftools_objpool.h"
++#include "fftools_sync_queue.h"
++#include "fftools_thread_queue.h"
+ 
+ #include "libavutil/fifo.h"
+ #include "libavutil/intreadwrite.h"
+@@ -38,8 +63,13 @@
+ #include "libavformat/avformat.h"
+ #include "libavformat/avio.h"
+ 
+-int want_sdp = 1;
++__thread int want_sdp = 1;
+ 
++MuxStream *ms_from_ost(OutputStream *ost)
++{
++    return (MuxStream*)ost;
++}
++
+ static Muxer *mux_from_of(OutputFile *of)
+ {
+     return (Muxer*)of;
+@@ -481,7 +511,7 @@
+         goto fail;
+ 
+     if (!sdp_filename) {
+-        printf("SDP:\n%s\n", sdp);
++        av_log(NULL, AV_LOG_ERROR, "SDP:\n%s\n", sdp);
+         fflush(stdout);
+     } else {
+         ret = avio_open2(&sdp_pb, sdp_filename, AVIO_FLAG_WRITE, &int_cb, NULL);
+@@ -616,7 +646,7 @@
+ 
+     ret = thread_stop(mux);
+     if (ret < 0)
+-        main_return_code = ret;
++        main_ffmpeg_return_code = ret;
+ 
+     ret = av_write_trailer(fc);
+     if (ret < 0) {

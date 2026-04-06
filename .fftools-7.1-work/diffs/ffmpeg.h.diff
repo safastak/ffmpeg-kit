@@ -1,0 +1,253 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg.h	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg.h	2026-04-06 18:08:33
+@@ -1,5 +1,7 @@
+ /*
+  * This file is part of FFmpeg.
++ * Copyright (c) 2018-2022 Taner Sener
++ * Copyright (c) 2023 ARTHENICA LTD
+  *
+  * FFmpeg is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU Lesser General Public
+@@ -14,6 +16,53 @@
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with FFmpeg; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/*
++ * This file is the modified version of ffmpeg.h file living in ffmpeg source code under the fftools folder. We
++ * manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop mobile-ffmpeg and later ffmpeg-kit libraries.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ * - WARN_MULTIPLE_OPT_USAGE, MATCH_PER_STREAM_OPT, MATCH_PER_TYPE_OPT, SPECIFIER_OPT_FMT declarations migrated to
++ *   ffmpeg_mux.h
++ * - "class" member field renamed as clazz
++ * - time field in set_report_callback updated as double
++ *
++ * mobile-ffmpeg / ffmpeg-kit changes by Taner Sener
++ *
++ * 09.2022
++ * --------------------------------------------------------
++ * - config.h include added back
++ * - volatile dropped from thread local variables
++ * - dropped signatures of ffmpeg_opt.c methods called by both ffmpeg and ffprobe
++ *
++ * 06.2020
++ * --------------------------------------------------------
++ * - cancel_operation() method signature updated with id
++ *
++ * 12.2019
++ * --------------------------------------------------------
++ * - concurrent execution support ("__thread" specifier added to variables used by multiple threads,
++ *   signatures of ffmpeg_opt.c methods called by both ffmpeg and ffprobe added)
++ *
++ * 03.2019
++ * --------------------------------------------------------
++ * - config.h include removed
++ *
++ * 08.2018
++ * --------------------------------------------------------
++ * - fftools_ prefix added to file name and include guards
++ * - set_report_callback() method declared
++ * - cancel_operation() method declared
++ *
++ * 07.2018
++ * --------------------------------------------------------
++ * - include guards renamed
+  */
+ 
+ #ifndef FFTOOLS_FFMPEG_H
+@@ -26,8 +75,8 @@
+ #include <stdio.h>
+ #include <signal.h>
+ 
+-#include "cmdutils.h"
+-#include "sync_queue.h"
++#include "fftools_cmdutils.h"
++#include "fftools_sync_queue.h"
+ 
+ #include "libavformat/avformat.h"
+ #include "libavformat/avio.h"
+@@ -560,7 +609,7 @@
+ } KeyframeForceCtx;
+ 
+ typedef struct OutputStream {
+-    const AVClass *class;
++    const AVClass *clazz;
+ 
+     int file_index;          /* file index */
+     int index;               /* stream index in the output file */
+@@ -690,7 +739,7 @@
+ } OutputStream;
+ 
+ typedef struct OutputFile {
+-    const AVClass *class;
++    const AVClass *clazz;
+ 
+     int index;
+ 
+@@ -709,61 +758,60 @@
+     int bitexact;
+ } OutputFile;
+ 
+-extern InputFile   **input_files;
+-extern int        nb_input_files;
++extern __thread InputFile   **input_files;
++extern __thread int        nb_input_files;
+ 
+-extern OutputFile   **output_files;
+-extern int         nb_output_files;
++extern __thread OutputFile   **output_files;
++extern __thread int         nb_output_files;
+ 
+-extern FilterGraph **filtergraphs;
+-extern int        nb_filtergraphs;
++extern __thread FilterGraph **filtergraphs;
++extern __thread int        nb_filtergraphs;
+ 
+-extern char *vstats_filename;
+-extern char *sdp_filename;
++extern __thread char *vstats_filename;
++extern __thread char *sdp_filename;
+ 
+-extern float audio_drift_threshold;
+-extern float dts_delta_threshold;
+-extern float dts_error_threshold;
++extern __thread float audio_drift_threshold;
++extern __thread float dts_delta_threshold;
++extern __thread float dts_error_threshold;
+ 
+-extern enum VideoSyncMethod video_sync_method;
+-extern float frame_drop_threshold;
+-extern int do_benchmark;
+-extern int do_benchmark_all;
+-extern int do_hex_dump;
+-extern int do_pkt_dump;
+-extern int copy_ts;
+-extern int start_at_zero;
+-extern int copy_tb;
+-extern int debug_ts;
+-extern int exit_on_error;
+-extern int abort_on_flags;
+-extern int print_stats;
+-extern int64_t stats_period;
+-extern int qp_hist;
+-extern int stdin_interaction;
+-extern AVIOContext *progress_avio;
+-extern float max_error_rate;
++extern __thread enum VideoSyncMethod video_sync_method;
++extern __thread float frame_drop_threshold;
++extern __thread int do_benchmark;
++extern __thread int do_benchmark_all;
++extern __thread int do_hex_dump;
++extern __thread int do_pkt_dump;
++extern __thread int copy_ts;
++extern __thread int start_at_zero;
++extern __thread int copy_tb;
++extern __thread int debug_ts;
++extern __thread int exit_on_error;
++extern __thread int abort_on_flags;
++extern __thread int print_stats;
++extern __thread int64_t stats_period;
++extern __thread int qp_hist;
++extern __thread int stdin_interaction;
++extern __thread AVIOContext *progress_avio;
++extern __thread float max_error_rate;
+ 
+-extern char *filter_nbthreads;
+-extern int filter_complex_nbthreads;
+-extern int vstats_version;
+-extern int auto_conversion_filters;
++extern __thread char *filter_nbthreads;
++extern __thread int filter_complex_nbthreads;
++extern __thread int vstats_version;
++extern __thread int auto_conversion_filters;
+ 
+-extern const AVIOInterruptCB int_cb;
++extern __thread const AVIOInterruptCB int_cb;
+ 
+-extern const OptionDef options[];
+-extern HWDevice *filter_hw_device;
++extern __thread HWDevice *filter_hw_device;
+ 
+-extern unsigned nb_output_dumped;
+-extern int main_return_code;
++extern __thread unsigned nb_output_dumped;
++extern __thread int main_ffmpeg_return_code;
+ 
+-extern int ignore_unknown_streams;
+-extern int copy_unknown_streams;
++extern __thread int ignore_unknown_streams;
++extern __thread int copy_unknown_streams;
+ 
+-extern int recast_media;
++extern __thread int recast_media;
+ 
+ #if FFMPEG_OPT_PSNR
+-extern int do_psnr;
++extern __thread int do_psnr;
+ #endif
+ 
+ void term_init(void);
+@@ -853,53 +901,12 @@
+  * pass NULL to start iteration */
+ InputStream *ist_iter(InputStream *prev);
+ 
+-#define SPECIFIER_OPT_FMT_str  "%s"
+-#define SPECIFIER_OPT_FMT_i    "%i"
+-#define SPECIFIER_OPT_FMT_i64  "%"PRId64
+-#define SPECIFIER_OPT_FMT_ui64 "%"PRIu64
+-#define SPECIFIER_OPT_FMT_f    "%f"
+-#define SPECIFIER_OPT_FMT_dbl  "%lf"
+-
+-#define WARN_MULTIPLE_OPT_USAGE(name, type, so, st)\
+-{\
+-    char namestr[128] = "";\
+-    const char *spec = so->specifier && so->specifier[0] ? so->specifier : "";\
+-    for (int _i = 0; opt_name_##name[_i]; _i++)\
+-        av_strlcatf(namestr, sizeof(namestr), "-%s%s", opt_name_##name[_i], opt_name_##name[_i+1] ? (opt_name_##name[_i+2] ? ", " : " or ") : "");\
+-    av_log(NULL, AV_LOG_WARNING, "Multiple %s options specified for stream %d, only the last option '-%s%s%s "SPECIFIER_OPT_FMT_##type"' will be used.\n",\
+-           namestr, st->index, opt_name_##name[0], spec[0] ? ":" : "", spec, so->u.type);\
+-}
+-
+-#define MATCH_PER_STREAM_OPT(name, type, outvar, fmtctx, st)\
+-{\
+-    int _ret, _matches = 0;\
+-    SpecifierOpt *so;\
+-    for (int _i = 0; _i < o->nb_ ## name; _i++) {\
+-        char *spec = o->name[_i].specifier;\
+-        if ((_ret = check_stream_specifier(fmtctx, st, spec)) > 0) {\
+-            outvar = o->name[_i].u.type;\
+-            so = &o->name[_i];\
+-            _matches++;\
+-        } else if (_ret < 0)\
+-            exit_program(1);\
+-    }\
+-    if (_matches > 1)\
+-       WARN_MULTIPLE_OPT_USAGE(name, type, so, st);\
+-}
+-
+-#define MATCH_PER_TYPE_OPT(name, type, outvar, fmtctx, mediatype)\
+-{\
+-    int i;\
+-    for (i = 0; i < o->nb_ ## name; i++) {\
+-        char *spec = o->name[i].specifier;\
+-        if (!strcmp(spec, mediatype))\
+-            outvar = o->name[i].u.type;\
+-    }\
+-}
+-
+ extern const char * const opt_name_codec_names[];
+ extern const char * const opt_name_codec_tags[];
+ extern const char * const opt_name_frame_rates[];
+ extern const char * const opt_name_top_field_first[];
+ 
++void set_report_callback(void (*callback)(int, float, float, int64_t, double, double, double));
++void cancel_operation(long id);
++
+ #endif /* FFTOOLS_FFMPEG_H */

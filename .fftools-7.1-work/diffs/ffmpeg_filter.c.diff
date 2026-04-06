@@ -1,0 +1,87 @@
+--- /tmp/ffmpeg-6.0-src/fftools/ffmpeg_filter.c	2026-04-06 17:05:14
++++ .fftools-7.1-work/kit60/ffmpeg_filter.c	2026-04-06 18:08:33
+@@ -1,5 +1,7 @@
+ /*
+  * ffmpeg filter configuration
++ * Copyright (c) 2018 Taner Sener
++ * Copyright (c) 2023 ARTHENICA LTD
+  *
+  * This file is part of FFmpeg.
+  *
+@@ -16,11 +18,33 @@
+  * You should have received a copy of the GNU Lesser General Public
+  * License along with FFmpeg; if not, write to the Free Software
+  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
++ */
++
++/*
++ * This file is the modified version of ffmpeg_filter.c file living in ffmpeg source code under the fftools folder.
++ * We manually update it each time we depend on a new ffmpeg version. Below you can see the list of changes applied
++ * by us to develop mobile-ffmpeg and later ffmpeg-kit libraries.
++ *
++ * ffmpeg-kit changes by ARTHENICA LTD
++ *
++ * 07.2023
++ * --------------------------------------------------------
++ * - FFmpeg 6.0 changes migrated
++ *
++ * mobile-ffmpeg / ffmpeg-kit changes by Taner Sener
++ *
++ * 08.2018
++ * --------------------------------------------------------
++ * - fftools_ prefix added to file name and parent header
++ *
++ * 07.2018
++ * --------------------------------------------------------
++ * - unused headers removed
+  */
+ 
+ #include <stdint.h>
+ 
+-#include "ffmpeg.h"
++#include "fftools_ffmpeg.h"
+ 
+ #include "libavfilter/avfilter.h"
+ #include "libavfilter/buffersink.h"
+@@ -52,7 +76,7 @@
+     }
+ }
+ 
+-static enum AVPixelFormat
++enum AVPixelFormat
+ choose_pixel_fmt(const AVCodec *codec, enum AVPixelFormat target,
+                  int strict_std_compliance)
+ {
+@@ -352,19 +376,17 @@
+ 
+     *len = fsize;
+ 
+-    ret = 0;
++    return 0;
+ fail:
+     avio_close(io);
+-    if (ret < 0) {
+-        av_freep(data);
+-        *len = 0;
+-    }
++    av_freep(data);
++    *len = 0;
+     return ret;
+ }
+ 
+ static int filter_opt_apply(AVFilterContext *f, const char *key, const char *val)
+ {
+-    const AVOption *o;
++    const AVOption *o = NULL;
+     int ret;
+ 
+     ret = av_opt_set(f, key, val, AV_OPT_SEARCH_CHILDREN);
+@@ -782,7 +804,7 @@
+     return ret;
+ }
+ 
+-static int configure_output_filter(FilterGraph *fg, OutputFilter *ofilter,
++int configure_output_filter(FilterGraph *fg, OutputFilter *ofilter,
+                                    AVFilterInOut *out)
+ {
+     if (!ofilter->ost) {

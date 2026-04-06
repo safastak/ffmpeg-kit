@@ -163,7 +163,7 @@ unzip -o ~/src/ffmpeg-kit/prebuilt/bundle-android-aar-lts/ffmpeg-kit/ffmpeg-kit.
 # Check alignment — LOAD segments should show 0x4000
 for so in $(find jni -name "*.so"); do
   echo "=== $so ==="
-  readelf -l "$so" 2>/dev/null | awk '/LOAD/{getline; print $NF}'
+  $ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-readelf -l "$so" 2>/dev/null | awk '/LOAD/{getline; print $NF}'
 done
 ```
 
