@@ -85,13 +85,13 @@ i386)
   BITCODE_FLAGS=""
   ;;
 x86-64)
-  TARGET_CPU="x86_64"
+  TARGET_CPU="x86-64"
   TARGET_ARCH="x86_64"
   ASM_OPTIONS=" --disable-neon --disable-asm"
   BITCODE_FLAGS=""
   ;;
 x86-64-mac-catalyst)
-  TARGET_CPU="x86_64"
+  TARGET_CPU="x86-64"
   TARGET_ARCH="x86_64"
   ASM_OPTIONS=" --disable-neon --disable-asm"
   BITCODE_FLAGS="-fembed-bitcode -Wc,-fembed-bitcode"
@@ -388,7 +388,8 @@ for library in {0..61}; do
     elif [[ ${library} -eq ${LIBRARY_APPLE_VIDEOTOOLBOX} ]]; then
       CONFIGURE_POSTFIX+=" --disable-videotoolbox"
     elif [[ ${library} -eq ${LIBRARY_SYSTEM_ZLIB} ]]; then
-      CONFIGURE_POSTFIX+=" --disable-zlib"
+      # HACK: ENABLE ZLIB FOR PNG
+      CONFIGURE_POSTFIX+=" --enable-zlib"
     elif [[ ${library} -eq ${LIBRARY_OPENSSL} ]]; then
       CONFIGURE_POSTFIX+=" --disable-openssl"
     fi
@@ -477,7 +478,9 @@ git checkout libavformat/protocols.c 1>>"${BASEDIR}"/build.log 2>&1
 git checkout libavutil 1>>"${BASEDIR}"/build.log 2>&1
 
 # 1. Workaround to prevent adding of -mdynamic-no-pic flag
-${SED_INLINE} 's/check_cflags -mdynamic-no-pic && add_asflags -mdynamic-no-pic;/check_cflags -mdynamic-no-pic;/g' ./configure 1>>"${BASEDIR}"/build.log 2>&1 || return 1
+# NOTE: Pattern no longer matches in FFmpeg 7.1 (format changed), skipping to avoid
+# sed -i re-tagging configure with com.apple.provenance which blocks shebang execution
+# ${SED_INLINE} 's/check_cflags -mdynamic-no-pic && add_asflags -mdynamic-no-pic;/check_cflags -mdynamic-no-pic;/g' ./configure 1>>"${BASEDIR}"/build.log 2>&1 || return 1
 
 # 2. Workaround for videotoolbox on mac catalyst
 if [[ ${ARCH} == *-mac-catalyst ]]; then
@@ -491,7 +494,15 @@ ${SED_INLINE} 's/static int av_log_level/__thread int av_log_level/g' "${BASEDIR
 
 ###################################################################
 
-./configure \
+echo -e "INFO: Starting ffmpeg configure in $(pwd)\n" 1>>"${BASEDIR}"/build.log 2>&1
+echo -e "INFO: configure exists: $(ls -la ./configure 2>&1)\n" 1>>"${BASEDIR}"/build.log 2>&1
+echo -e "INFO: testing bash: $(/bin/bash -c 'echo bash_works' 2>&1)\n" 1>>"${BASEDIR}"/build.log 2>&1
+echo -e "INFO: about to run configure...\n" 1>>"${BASEDIR}"/build.log 2>&1
+
+# Use 'bash' and CONFIG_SHELL to avoid macOS com.apple.provenance attribute
+# blocking shebang execution of scripts (affects configure's temp test scripts too)
+export CONFIG_SHELL=/bin/bash
+bash ./configure \
   --cross-prefix="${HOST}-" \
   --sysroot="${SDK_PATH}" \
   --prefix="${FFMPEG_LIBRARY_PATH}" \
@@ -549,6 +560,8 @@ ${SED_INLINE} 's/static int av_log_level/__thread int av_log_level/g' "${BASEDIR
   --disable-vaapi \
   --disable-vdpau \
   ${CONFIGURE_POSTFIX} 1>>"${BASEDIR}"/build.log 2>&1
+
+echo -e "INFO: ffmpeg configure completed\n" 1>>"${BASEDIR}"/build.log 2>&1
 
 if [[ $? -ne 0 ]]; then
   echo -e "failed\n\nSee build.log for details\n"
@@ -657,7 +670,6 @@ overwrite_file "${BASEDIR}"/src/ffmpeg/libavutil/x86/asm.h "${FFMPEG_LIBRARY_PAT
 overwrite_file "${BASEDIR}"/src/ffmpeg/libavutil/x86/timer.h "${FFMPEG_LIBRARY_PATH}"/include/libavutil/x86/timer.h 1>>"${BASEDIR}"/build.log 2>&1
 overwrite_file "${BASEDIR}"/src/ffmpeg/libavutil/arm/timer.h "${FFMPEG_LIBRARY_PATH}"/include/libavutil/arm/timer.h 1>>"${BASEDIR}"/build.log 2>&1
 overwrite_file "${BASEDIR}"/src/ffmpeg/libavutil/aarch64/timer.h "${FFMPEG_LIBRARY_PATH}"/include/libavutil/aarch64/timer.h 1>>"${BASEDIR}"/build.log 2>&1
-overwrite_file "${BASEDIR}"/src/ffmpeg/libavutil/x86/emms.h "${FFMPEG_LIBRARY_PATH}"/include/libavutil/x86/emms.h 1>>"${BASEDIR}"/build.log 2>&1
 
 if [ $? -eq 0 ]; then
   echo "ok"

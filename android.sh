@@ -212,6 +212,9 @@ download_gnu_config
 # DOWNLOAD LIBRARY SOURCES
 downloaded_library_sources "${ENABLED_LIBRARIES[@]}"
 
+# APPLY PATCHES TO DOWNLOADED SOURCES
+bash "${BASEDIR}"/apply-patches.sh
+
 # SAVE ORIGINAL API LEVEL = NECESSARY TO BUILD 64bit ARCHITECTURES
 export ORIGINAL_API=${API}
 

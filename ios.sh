@@ -246,6 +246,9 @@ download_gnu_config
 # DOWNLOAD LIBRARY SOURCES
 downloaded_library_sources "${ENABLED_LIBRARIES[@]}"
 
+# APPLY PATCHES TO DOWNLOADED SOURCES
+bash "${BASEDIR}"/apply-patches.sh
+
 # THIS WILL SAVE ARCHITECTURES TO BUILD
 TARGET_ARCH_LIST=()
 

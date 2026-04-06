@@ -23,9 +23,12 @@ fi
   --disable-lzma \
   --host="${HOST}" || return 1
 
-make -j$(get_cpu_count) || return 1
+# Build only the library (port + libtiff), skip tools which fail with NDK r28
+make -j$(get_cpu_count) -C port || return 1
+make -j$(get_cpu_count) -C libtiff || return 1
 
-make install || return 1
+# Install only the library
+make -C libtiff install || return 1
 
 # MANUALLY COPY PKG-CONFIG FILES
 cp ./*.pc "${INSTALL_PKG_CONFIG_DIR}" || return 1

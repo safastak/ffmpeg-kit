@@ -23,27 +23,27 @@ get_library_source() {
     ;;
   dav1d)
     SOURCE_REPO_URL="https://github.com/arthenica/dav1d"
-    SOURCE_ID="1.2.1"
+    SOURCE_ID="1.4.3"
     SOURCE_TYPE="TAG"
     ;;
   expat)
     SOURCE_REPO_URL="https://github.com/arthenica/libexpat"
-    SOURCE_ID="R_2_5_0"
+    SOURCE_ID="R_2_6_3"
     SOURCE_TYPE="TAG"
     ;;
   ffmpeg)
     SOURCE_REPO_URL="https://github.com/arthenica/FFmpeg"
-    SOURCE_ID="n6.0"
+    SOURCE_ID="n7.1"
     SOURCE_TYPE="TAG"
     ;;
   fontconfig)
     SOURCE_REPO_URL="https://github.com/arthenica/fontconfig"
-    SOURCE_ID="2.14.2"
+    SOURCE_ID="2.15.0"
     SOURCE_TYPE="TAG"
     ;;
   freetype)
     SOURCE_REPO_URL="https://github.com/arthenica/freetype2"
-    SOURCE_ID="VER-2-13-0"
+    SOURCE_ID="VER-2-13-3"
     SOURCE_TYPE="TAG"
     ;;
   fribidi)
@@ -68,12 +68,12 @@ get_library_source() {
     ;;
   harfbuzz)
     SOURCE_REPO_URL="https://github.com/arthenica/harfbuzz"
-    SOURCE_ID="8.0.1"
+    SOURCE_ID="8.5.0"
     SOURCE_TYPE="TAG"
     ;;
   jpeg)
     SOURCE_REPO_URL="https://github.com/arthenica/libjpeg-turbo"
-    SOURCE_ID="3.0.0"
+    SOURCE_ID="3.0.4"
     SOURCE_TYPE="TAG"
     ;;
   kvazaar)
@@ -93,12 +93,12 @@ get_library_source() {
     ;;
   libaom)
     SOURCE_REPO_URL="https://github.com/arthenica/libaom"
-    SOURCE_ID="v3.6.1"
+    SOURCE_ID="v3.9.1"
     SOURCE_TYPE="TAG"
     ;;
   libass)
     SOURCE_REPO_URL="https://github.com/arthenica/libass"
-    SOURCE_ID="0.17.1"
+    SOURCE_ID="0.17.3"
     SOURCE_TYPE="TAG"
     ;;
   libiconv)
@@ -153,17 +153,17 @@ get_library_source() {
     ;;
   libvpx)
     SOURCE_REPO_URL="https://github.com/arthenica/libvpx"
-    SOURCE_ID="v1.13.0"
+    SOURCE_ID="v1.13.1"
     SOURCE_TYPE="TAG"
     ;;
   libwebp)
     SOURCE_REPO_URL="https://github.com/arthenica/libwebp"
-    SOURCE_ID="v1.3.1"
+    SOURCE_ID="v1.4.0"
     SOURCE_TYPE="TAG"
     ;;
   libxml2)
     SOURCE_REPO_URL="https://github.com/arthenica/libxml2"
-    SOURCE_ID="v2.11.4"
+    SOURCE_ID="v2.12.9"
     SOURCE_TYPE="TAG"
     ;;
   nettle)
@@ -183,12 +183,12 @@ get_library_source() {
     ;;
   openssl)
     SOURCE_REPO_URL="https://github.com/arthenica/openssl"
-    SOURCE_ID="openssl-3.1.1"
+    SOURCE_ID="openssl-3.3.2"
     SOURCE_TYPE="TAG"
     ;;
   opus)
     SOURCE_REPO_URL="https://github.com/arthenica/opus"
-    SOURCE_ID="v1.4"
+    SOURCE_ID="v1.5.2"
     SOURCE_TYPE="TAG"
     ;;
   rubberband)
@@ -263,7 +263,7 @@ get_library_source() {
     ;;
   zimg)
     SOURCE_REPO_URL="https://github.com/arthenica/zimg"
-    SOURCE_ID="release-3.0.5"
+    SOURCE_ID="release-3.0.6"
     SOURCE_TYPE="TAG"
     ;;
   esac
