@@ -688,8 +688,12 @@ static void print_report(int is_last_report, int64_t timer_start, int64_t cur_ti
         if (last_time == -1) {
             last_time = cur_time;
         }
-        if (((cur_time - last_time) < stats_period && !first_report) ||
-            (first_report && atomic_load(&nb_output_dumped) < nb_output_files))
+        // FFmpegKit: `nb_output_dumped` is __thread (per-session isolation) but it is incremented on
+        // the muxer thread and read here on the transcode thread — two TLS copies — so the upstream
+        // "wait until the output dump printed" gate never opened and periodic reports (and the
+        // statistics callback) fired only for the final report. The gate is cosmetic (log ordering
+        // with av_dump_format), so drop it.
+        if ((cur_time - last_time) < stats_period && !first_report)
             return;
         last_time = cur_time;
     }
