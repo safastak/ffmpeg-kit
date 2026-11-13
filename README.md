@@ -93,6 +93,7 @@ Build time: ~30–60 minutes.
   --enable-lame \
   --enable-libass \
   --enable-ios-libiconv \
+  --enable-ios-videotoolbox \
   --enable-libilbc \
   --enable-libtheora \
   --enable-libvorbis \
