@@ -37,8 +37,9 @@ make distclean 2>/dev/null 1>/dev/null
 
 # NOTE THAT RECONFIGURE IS NOT SUPPORTED
 
-# WORKAROUND TO FIX BUILD OPTIONS DEFINED IN configure.sh
-overwrite_file "${BASEDIR}"/tools/patch/make/libvpx/configure.sh "${BASEDIR}"/src/"${LIB_NAME}"/build/make/configure.sh || return 1
+# libvpx's own build/make/configure.sh is used as is on Android. The copy in
+# tools/patch/make/libvpx/configure.sh only changes Apple handling (sysroot,
+# -arch and minimum OS flags) and is applied by scripts/apple/libvpx.sh.
 
 ./configure \
   --prefix="${LIB_INSTALL_PREFIX}" \

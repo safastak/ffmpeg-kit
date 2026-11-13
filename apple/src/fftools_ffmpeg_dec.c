@@ -42,6 +42,11 @@
 
 #include "fftools_ffmpeg.h"
 
+// How many times packet_decode() asks again when a decoder returns EAGAIN
+// while flushing. A MediaCodec output dequeue blocks up to 1 s per call while
+// draining, so this bounds the extra wait to about 3 s.
+#define FLUSH_EAGAIN_MAX_RETRIES 3
+
 typedef struct DecoderPriv {
     Decoder             dec;
 
@@ -748,6 +753,8 @@ static int packet_decode(DecoderPriv *dp, AVPacket *pkt, AVFrame *frame)
         return ret;
     }
 
+    int flush_eagain_count = 0;
+
     while (1) {
         FrameData *fd;
         unsigned outputs_mask = 1;
@@ -759,8 +766,20 @@ static int packet_decode(DecoderPriv *dp, AVPacket *pkt, AVFrame *frame)
         update_benchmark("decode_%s %s", type_desc, dp->parent_name);
 
         if (ret == AVERROR(EAGAIN)) {
-            av_assert0(pkt); // should never happen during flushing
-            return 0;
+            if (pkt)
+                return 0;
+            // Flushing. Upstream asserts here (av_assert0(pkt)), which aborts
+            // the whole host process. Hardware decoders (Android MediaCodec)
+            // do return EAGAIN while draining: when the codec reports its
+            // output format before its first frame, and when the blocking
+            // output dequeue times out. Ask again a few times, then end the
+            // stream.
+            if (++flush_eagain_count <= FLUSH_EAGAIN_MAX_RETRIES)
+                continue;
+            av_log(dp, AV_LOG_WARNING, "Decoder still returned EAGAIN after %d "
+                   "retries while flushing; ending the stream\n",
+                   FLUSH_EAGAIN_MAX_RETRIES);
+            return AVERROR_EOF;
         } else if (ret == AVERROR_EOF) {
             return ret;
         } else if (ret < 0) {

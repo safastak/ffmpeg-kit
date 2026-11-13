@@ -223,7 +223,9 @@ get_app_specific_cflags() {
   libwebp | xvidcore)
     APP_FLAGS="-fno-common -DPIC"
     ;;
-  openh264 | openssl | x265)
+  # libvpx 1.17 requires C11 (static_assert in C) and sets the standard
+  # itself, so it must not get the default -std=c99, same as on Android.
+  libvpx | openh264 | openssl | x265)
     APP_FLAGS="-Wno-unused-function"
     ;;
   sdl)

@@ -33,7 +33,7 @@ get_library_source() {
     ;;
   ffmpeg)
     SOURCE_REPO_URL="https://github.com/arthenica/FFmpeg"
-    SOURCE_ID="n7.1"
+    SOURCE_ID="n7.1.5"
     SOURCE_TYPE="TAG"
     ;;
   fontconfig)
@@ -153,12 +153,12 @@ get_library_source() {
     ;;
   libvpx)
     SOURCE_REPO_URL="https://github.com/arthenica/libvpx"
-    SOURCE_ID="v1.13.1"
+    SOURCE_ID="v1.17.0"
     SOURCE_TYPE="TAG"
     ;;
   libwebp)
     SOURCE_REPO_URL="https://github.com/arthenica/libwebp"
-    SOURCE_ID="v1.4.0"
+    SOURCE_ID="v1.6.0"
     SOURCE_TYPE="TAG"
     ;;
   libxml2)

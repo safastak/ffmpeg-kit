@@ -13,13 +13,24 @@ armv7 | armv7s)
   TARGET="$(get_target_cpu)-darwin-gcc"
   ASM_OPTIONS="--disable-runtime-cpu-detect --enable-neon --enable-neon-asm"
   ;;
+arm64e)
+  TARGET="arm64-darwin-gcc"
+
+  # Plain Neon only: Apple clang crashes compiling libvpx's DotProd/I8MM
+  # files (target-attribute functions) for arm64e ("arm64e LR authentication
+  # requires ptrauth"). App Store apps cannot ship arm64e code anyway.
+  ASM_OPTIONS="--disable-runtime-cpu-detect --enable-neon --disable-neon-dotprod --disable-neon-i8mm --disable-sve --disable-sve2"
+  ;;
 arm64*)
   TARGET="arm64-darwin-gcc"
 
   # --enable-neon-asm option not added because it causes the following error
   # vpx_dsp/arm/intrapred_neon_asm.asm.S:653:26: error: vector register expected
   #    vst1.64
-  ASM_OPTIONS="--disable-runtime-cpu-detect --enable-neon"
+  # Runtime CPU detection works on Apple since libvpx 1.14 (sysctlbyname
+  # hw.optional.arm.FEAT_DotProd / FEAT_I8MM), so the DotProd and I8MM code
+  # paths run on chips that have them and older chips fall back to plain Neon.
+  ASM_OPTIONS="--enable-runtime-cpu-detect --enable-neon"
   ;;
 i386)
   TARGET="x86-iphonesimulator-gcc"
